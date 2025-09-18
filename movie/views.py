@@ -1,3 +1,36 @@
+from openai import OpenAI
+import numpy as np
+import os
+from dotenv import load_dotenv
+def recommend_movie(request):
+    recommended = None
+    similarity = None
+    prompt = None
+    if request.method == 'POST':
+        prompt = request.POST.get('prompt')
+        if prompt:
+            load_dotenv('openAI.env')
+            client = OpenAI(api_key=os.environ.get('openai_apikey'))
+            response = client.embeddings.create(
+                input=[prompt],
+                model="text-embedding-3-small"
+            )
+            prompt_emb = np.array(response.data[0].embedding, dtype=np.float32)
+            best_movie = None
+            max_similarity = -1
+            for movie in Movie.objects.all():
+                movie_emb = np.frombuffer(movie.emb, dtype=np.float32)
+                sim = np.dot(prompt_emb, movie_emb) / (np.linalg.norm(prompt_emb) * np.linalg.norm(movie_emb))
+                if sim > max_similarity:
+                    max_similarity = sim
+                    best_movie = movie
+            recommended = best_movie
+            similarity = max_similarity
+    return render(request, 'recommend.html', {
+        'prompt': prompt,
+        'recommended': recommended,
+        'similarity': similarity
+    })
 from django.shortcuts import render
 from django.http import HttpResponse
 import matplotlib.pyplot as plt

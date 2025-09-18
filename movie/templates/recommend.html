@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Recomendador de películas</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="prompt" class="form-label">Describe la película que buscas:</label>
+            <input type="text" class="form-control" id="prompt" name="prompt" value="{{ prompt|default:'' }}" required>
+        </div>
+        <button type="submit" class="btn btn-success">Buscar recomendación</button>
+    </form>
+    {% if recommended %}
+        <hr>
+        <h4>Película recomendada:</h4>
+        <div class="card" style="max-width: 400px;">
+            <img src="{{ recommended.img.url }}" class="card-img-top" alt="Imagen de la película" style="object-fit: cover; height: 250px;">
+            <div class="card-body">
+                <h5 class="card-title">{{ recommended.title }}</h5>
+                <p class="card-text">{{ recommended.description }}</p>
+                <p class="card-text"><strong>Género:</strong> {{ recommended.genre }}</p>
+                <p class="card-text"><strong>Año:</strong> {{ recommended.year }}</p>
+                <p class="card-text"><strong>Similitud:</strong> {{ similarity|floatformat:4 }}</p>
+                {% if recommended.url %}
+                <a href="{{ recommended.url }}" class="btn btn-primary mt-2">Ver más</a>
+                {% endif %}
+            </div>
+        </div>
+    {% elif prompt %}
+        <hr>
+        <div class="alert alert-warning">No se encontró ninguna película similar.</div>
+    {% endif %}
+</div>
+{% endblock %}
